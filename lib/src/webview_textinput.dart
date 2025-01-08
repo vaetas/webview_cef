@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
-mixin WebeViewTextInput implements DeltaTextInputClient {
+mixin WebeViewTextInput implements TextInputClient {
   @override
   TextEditingValue? currentTextEditingValue;
 
@@ -14,7 +14,7 @@ mixin WebeViewTextInput implements DeltaTextInputClient {
   attachTextInputClient() {
     _textInputConnection?.close();
     _textInputConnection = TextInput.attach(
-        this, const TextInputConfiguration(enableDeltaModel: true));
+        this, const TextInputConfiguration(enableDeltaModel: false));
     if (!Platform.isWindows) {
       _textInputConnection?.show();
     }
@@ -25,18 +25,10 @@ mixin WebeViewTextInput implements DeltaTextInputClient {
     _textInputConnection?.close();
   }
 
-  updateIMEComposionPosition(double x, double y, Offset offset) {
-    /// 1.It always displays at the last position, which should be a bug in the Flutter engine.
-    /// 2.If switch windows and switch back, this function can run well once.I think there must have a flush function called when switching windows
-    /// 3.Windows can run well, but Linux can't.
-    _textInputConnection?.setEditableSizeAndTransform(const Size(0, 0),
-        Matrix4.translationValues(offset.dx + x, offset.dy + y, 0));
-  }
-
   @override
   didChangeInputControl(
       TextInputControl? oldControl, TextInputControl? newControl) {
-    print("changed");
+    print("changed input control");
   }
 
   @override
@@ -67,7 +59,9 @@ mixin WebeViewTextInput implements DeltaTextInputClient {
   showToolbar() {}
 
   @override
-  updateEditingValue(TextEditingValue value) {}
+  updateEditingValue(TextEditingValue value) {
+    currentTextEditingValue = value;
+  }
 
   @override
   updateFloatingCursor(RawFloatingCursorPoint point) {}

@@ -1,14 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_cef/src/webview_inject_user_script.dart';
 
-import 'webview_manager.dart';
 import 'webview_events_listener.dart';
 import 'webview_javascript.dart';
+import 'webview_manager.dart';
 import 'webview_textinput.dart';
 import 'webview_tooltip.dart';
 
@@ -82,12 +80,14 @@ class WebViewController extends ValueNotifier<bool> {
 
   @override
   Future<void> dispose() async {
+    setClientFocus(false);
     await _creatingCompleter.future;
     if (!_isDisposed) {
       _isDisposed = true;
       WebviewManager().removeWebView(_browserId);
       await _pluginChannel.invokeMethod('close', _browserId);
     }
+
     super.dispose();
   }
 
@@ -253,6 +253,10 @@ class WebViewController extends ValueNotifier<bool> {
     if (_isDisposed) {
       return;
     }
+    // dont set size for dropdown
+    if (size.height < 600) {
+      return;
+    }
     assert(value);
     return _pluginChannel
         .invokeMethod('setSize', [_browserId, dpi, size.width, size.height]);
@@ -298,51 +302,12 @@ class WebViewState extends State<WebView> with WebeViewTextInput {
   WebViewController get _controller => widget.controller;
 
   @override
-  updateEditingValueWithDeltas(List<TextEditingDelta> textEditingDeltas) {
-    /// Handles IME composition only
-    for (var d in textEditingDeltas) {
-      if (d is TextEditingDeltaInsertion) {
-        // composing text
-        if (d.composing.isValid) {
-          _composingText += d.textInserted;
-          _controller.imeSetComposition(_composingText);
-        } else if (!Platform.isWindows) {
-          _controller.imeCommitText(d.textInserted);
-        }
-      } else if (d is TextEditingDeltaDeletion) {
-        if (d.composing.isValid) {
-          if (_composingText == d.textDeleted) {
-            _composingText = "";
-          }
-          _controller.imeSetComposition(_composingText);
-        }
-      } else if (d is TextEditingDeltaReplacement) {
-        if (d.composing.isValid) {
-          _composingText = d.replacementText;
-          _controller.imeSetComposition(_composingText);
-        }
-      } else if (d is TextEditingDeltaNonTextUpdate) {
-        if (_composingText.isNotEmpty) {
-          _controller.imeCommitText(_composingText);
-          _composingText = '';
-        }
-      }
-    }
-  }
-
-  @override
   void initState() {
     super.initState();
     _controller._onFocusedNodeChangeMessage = (editable) {
       _composingText = '';
       editable ? attachTextInputClient() : detachTextInputClient();
       _controller._focusEditable = editable;
-    };
-
-    _controller._onImeCompositionRangeChangedMessage = (x, y) {
-      final box = _key.currentContext!.findRenderObject() as RenderBox;
-      updateIMEComposionPosition(
-          x.toDouble(), y.toDouble(), box.localToGlobal(Offset.zero));
     };
 
     _controller._onToolTip = (final String text) {
@@ -377,6 +342,9 @@ class WebViewState extends State<WebView> with WebeViewTextInput {
     // Report initial surface size
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _reportSurfaceSize(context));
+
+    // Attach text input client
+    attachTextInputClient();
   }
 
   @override
