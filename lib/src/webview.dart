@@ -133,24 +133,6 @@ class WebViewController extends ValueNotifier<bool> {
     return _pluginChannel.invokeMethod('openDevTools', _browserId);
   }
 
-  Future<void> imeSetComposition(String composingText) async {
-    if (_isDisposed) {
-      return;
-    }
-    assert(value);
-    return _pluginChannel
-        .invokeMethod('imeSetComposition', [_browserId, composingText]);
-  }
-
-  Future<void> imeCommitText(String composingText) async {
-    if (_isDisposed) {
-      return;
-    }
-    assert(value);
-    return _pluginChannel
-        .invokeMethod('imeCommitText', [_browserId, composingText]);
-  }
-
   Future<void> setClientFocus(bool focus) async {
     if (_isDisposed) {
       return;
@@ -253,10 +235,7 @@ class WebViewController extends ValueNotifier<bool> {
     if (_isDisposed) {
       return;
     }
-    // dont set size for dropdown
-    if (size.height < 600) {
-      return;
-    }
+
     assert(value);
     return _pluginChannel
         .invokeMethod('setSize', [_browserId, dpi, size.width, size.height]);

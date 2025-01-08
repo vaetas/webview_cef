@@ -38,7 +38,9 @@ mixin WebeViewTextInput implements TextInputClient {
   insertTextPlaceholder(Size size) {}
 
   @override
-  insertContent(KeyboardInsertedContent content) {}
+  insertContent(KeyboardInsertedContent content) {
+    print("insertContent");
+  }
 
   @override
   performAction(TextInputAction action) {}

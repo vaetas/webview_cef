@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:webview_cef/webview_cef.dart';
 import 'package:webview_cef/src/webview_inject_user_script.dart';
+import 'package:webview_cef/webview_cef.dart';
 
 void main() {
   runApp(const MyApp());
@@ -65,7 +65,7 @@ class _MyAppState extends State<MyApp> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     await WebviewManager().initialize(userAgent: "test/userAgent");
-    String url = "www.baidu.com";
+    String url = "www.google.com";
     _textController.text = url;
     //unified interface for all platforms set user agent
     _controller.setWebviewListener(WebviewEventsListener(
@@ -190,7 +190,7 @@ class _MyAppState extends State<MyApp> {
                     _controller.loadUrl(url);
                     WebviewManager().visitAllCookies().then((value) {
                       allCookies = Map.of(value);
-                      if (url == "baidu.com") {
+                      if (url == "google.com") {
                         if (!allCookies.containsKey('.$url') ||
                             !Map.of(allCookies['.$url']).containsKey('test')) {
                           WebviewManager().setCookie(url, 'test', 'test123');
